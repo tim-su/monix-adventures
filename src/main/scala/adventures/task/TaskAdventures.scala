@@ -12,21 +12,25 @@ object TaskAdventures {
     * See https://monix.io/docs/2x/eval/task.html#simple-builders for ways to construct Tasks
     */
   def immediatelyExecutingTask(): Task[Int] = {
-    ???
+    Task(43)
   }
 
   /**
     * 2.	Create a Task which when executed logs “hello world” (using `logger`)
     */
   def helloWorld(logger: String => Unit): Task[Unit] = {
-    ???
+   Task {
+     logger("hello world")
+   }
   }
 
   /**
     * 3.	Create a Task which always fails
     */
   def alwaysFailingTask(): Task[Unit] = {
-    ???
+    Task {
+      throw new Exception("Always fail!")
+    }
   }
 
   /**
@@ -36,7 +40,7 @@ object TaskAdventures {
   def getCurrentTempInF(currentTemp: () => Task[Int]): Task[Int] = {
     def cToF(c: Int) = c * 9 / 5 + 32
 
-    ???
+    currentTemp().map(cToF(_))
   }
 
   /**
@@ -45,7 +49,10 @@ object TaskAdventures {
     * Make use of both of these services to return the current temperature in farenheit.
     */
   def getCurrentTempInFAgain(currentTemp: () => Task[Int], convertor: Int => Task[Int]): Task[Int] = {
-    ???
+    for {
+      cTemp <- currentTemp()
+      fTemp <- convertor(cTemp)
+    } yield fTemp
   }
 
   /**
@@ -57,7 +64,8 @@ object TaskAdventures {
     * in tests.
     */
   def calculateStringComplexityInParallel(strings: List[String], complexity: String => Task[Int]): Task[Int] = {
-    ???
+    val aggregate: Task[List[Int]] = Task.gather(strings.map(each => Task(each.size))).map(_.toList)
+    aggregate.flatMap[Int](list => Task(list.sum))
   }
 
   /**
@@ -78,7 +86,7 @@ object TaskAdventures {
     * attempts if the supplied Task fails.
     */
   def retryOnFailure[T](t: Task[T], maxRetries: Int, delay: FiniteDuration): Task[T] = {
-    ???
+    t.delayExecution(delay).onErrorRestart(maxRetries)
   }
 
 }
